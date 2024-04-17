@@ -40,15 +40,42 @@ public class Gui
 
         if(!factions.isEmpty())
         {
-            int max = Math.min(45 * (pageNumber + 1), factions.size());
-
             int index = 0;
-            for(int i = 45 * pageNumber, j = i + max; i <= j; i++)
+            for(int i = 45 * pageNumber, j = Math.min(45 * (pageNumber + 1), factions.size()); i < j; i++)
             {
                 inventory.setItem(index, CreateItem(factions.get(i), Material.PLAYER_HEAD, ""));
                 index++;
             }
         }
+
+        float pageAmount = (float) factions.size() / 45;
+        ItemStack fillItem = CreateItem("", Material.GRAY_STAINED_GLASS_PANE, "");
+
+        if(pageNumber < pageAmount - 1)
+        {
+            inventory.setItem(53, CreateItem("Next", Material.STONE_BUTTON, "Go to the next page."));
+        }
+        else
+        {
+            inventory.setItem(53, fillItem);
+        }
+
+        if(pageNumber > 0)
+        {
+            inventory.setItem(45, CreateItem("Previous", Material.STONE_BUTTON, "Go to the previous page."));
+        }
+        else
+        {
+            inventory.setItem(45, fillItem);
+        }
+
+        inventory.setItem(49, CreateItem("Leave", Material.RED_WOOL, "Go back to the main menu."));
+        inventory.setItem(46, fillItem);
+        inventory.setItem(47, fillItem);
+        inventory.setItem(48, fillItem);
+        inventory.setItem(50, fillItem);
+        inventory.setItem(51, fillItem);
+        inventory.setItem(52, fillItem);
 
         player.openInventory(inventory);
     }

@@ -52,6 +52,16 @@ public class FactionManager
         player.sendMessage(GREEN + "New faction " + factionName + " created.");
     }
 
+    public void create(UUID player, String factionName) throws SQLException
+    {
+        ArrayList<String> members = new ArrayList<>();
+        members.add(player.toString());
+        Faction faction = new Faction(0, factionName, WHITE, player, members);
+
+        simpleFactionsPlugin.factionDatabase.addFaction(faction);
+        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.toString(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).id());
+    }
+
     public void delete(Player player) throws SQLException
     {
         if(!simpleFactionsPlugin.playerDatabase.hasFaction(player))

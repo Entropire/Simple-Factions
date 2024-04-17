@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class FactionCommand implements CommandExecutor
 {
@@ -36,22 +37,6 @@ public class FactionCommand implements CommandExecutor
 
         if(args.length == 0)
         {
-            /*
-            player.sendMessage("Available commands for factions are");
-            player.sendMessage("/faction create");
-            player.sendMessage("/faction delete");
-            player.sendMessage("/faction list");
-            player.sendMessage("/faction owner");
-            player.sendMessage("/faction members");
-            player.sendMessage("/faction leave");
-            player.sendMessage("/faction kick");
-            player.sendMessage("/faction invite");
-            player.sendMessage("/faction join");
-            player.sendMessage("/faction accept");
-            player.sendMessage("/faction decline");
-            player.sendMessage("/faction modify");
-            */
-
             gui.SimpleFaction(player);
 
             return false;
@@ -95,6 +80,9 @@ public class FactionCommand implements CommandExecutor
             case "modify":
                 handleModifyCommand(args, player);
                 break;
+            case "now":
+                handleNowCommand(args, player);
+                break;
             default:
                 player.sendMessage("Available commands for factions are");
                 player.sendMessage("/faction create");
@@ -127,6 +115,25 @@ public class FactionCommand implements CommandExecutor
             factionManager.create(player, args[1]);
         }
         catch (SQLException ex)
+        {
+            handleException(ex, player, "Something went wrong while making the faction.");
+        }
+    }
+
+    private void handleNowCommand(String[] args, Player player)
+    {
+        if (args.length < 2)
+        {
+            player.sendMessage(ChatColor.RED + "/faction create [amount].");
+            return;
+        }
+
+        try
+        {
+            for(int i = 0; i < Integer.parseInt(args[1]); i++){
+                factionManager.create(UUID.randomUUID(), "#$#$#$#$#$#$#$#$GHGHGHGHGHGHGH#$#$#$#$#$$#$#" + i);
+            }
+        } catch (SQLException ex)
         {
             handleException(ex, player, "Something went wrong while making the faction.");
         }
