@@ -1,6 +1,7 @@
 package me.entropire.simplefactions.Listeners;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import me.entropire.simplefactions.FactionManager;
 import me.entropire.simplefactions.Gui;
 import me.entropire.simplefactions.Simple_Factions;
 import org.bukkit.Material;
@@ -14,10 +15,12 @@ import java.sql.SQLException;
 
 public class OnInventoryClick  implements Listener
 {
+    FactionManager factionManager;
     Gui gui;
 
     public OnInventoryClick(Simple_Factions simpleFactionsPlugin)
     {
+        factionManager = new FactionManager(simpleFactionsPlugin);
         gui = new Gui(simpleFactionsPlugin);
     }
 
@@ -44,11 +47,27 @@ public class OnInventoryClick  implements Listener
         {
             HandleFactionListGui(clickedItem, player, inventoryName);
         }
+
+        if(inventoryName.contains("Info of "))
+        {
+            HandleFactionJoinGui(clickedItem, player, inventoryName);
+        }
     }
 
     private void HandleSimpleFactionGui(ItemStack clickedItem, Player player)
     {
-        if(clickedItem.getItemMeta().getDisplayName().equals("Create"))
+        if(clickedItem.getItemMeta().getDisplayName().equals("Join faction") && clickedItem.getType().equals(Material.NAME_TAG))
+        {
+            try
+            {
+                gui.FactionList(player, 0);
+            } catch (SQLException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if(clickedItem.getItemMeta().getDisplayName().equals("Create new faction") && clickedItem.getType().equals(Material.ANVIL))
         {
             try
             {
@@ -62,7 +81,18 @@ public class OnInventoryClick  implements Listener
 
     private void HandleFactionListGui(ItemStack clickedItem, Player player, String inventoryName)
     {
-        if(clickedItem.getItemMeta().getDisplayName().equals("Leave"))
+        if(clickedItem.getType().equals(Material.PLAYER_HEAD))
+        {
+            try
+            {
+                gui.FactionInfo(player, clickedItem.getItemMeta().getDisplayName());
+            } catch (SQLException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if(clickedItem.getItemMeta().getDisplayName().equals("Leave") && clickedItem.getType().equals(Material.RED_WOOL))
         {
             gui.SimpleFaction(player);
         }
@@ -96,8 +126,32 @@ public class OnInventoryClick  implements Listener
         }
     }
 
-    private void HandleFactionJoinGui()
+    private void HandleFactionJoinGui(ItemStack clickedItem, Player player, String inventoryName)
     {
+        if(clickedItem.getItemMeta().getDisplayName().equals("Join") && clickedItem.getType().equals(Material.GREEN_WOOL))
+        {
+            player.closeInventory();
 
+            inventoryName = inventoryName.replace("Info of ", "");
+
+            try
+            {
+                factionManager.join(player,inventoryName);
+            } catch (SQLException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if(clickedItem.getItemMeta().getDisplayName().equals("Leave") && clickedItem.getType().equals(Material.RED_WOOL))
+        {
+            try
+            {
+                gui.FactionList(player, 0);
+            } catch (SQLException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

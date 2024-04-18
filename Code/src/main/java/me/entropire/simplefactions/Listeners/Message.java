@@ -43,7 +43,7 @@ public class Message implements Listener
                         break;
                 }
             }else{
-                e.setFormat(ChatColor.WHITE + player.getName() + ":" + ChatColor.GRAY + e.getMessage());
+                e.setFormat(ChatColor.WHITE + player.getName() + ": " + ChatColor.GRAY + e.getMessage());
             }
         }
         catch (SQLException ex)

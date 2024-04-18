@@ -1,9 +1,10 @@
 package me.entropire.simplefactions;
 
+import me.entropire.simplefactions.objects.Faction;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,7 +27,7 @@ public class Gui
         Inventory inventory = Bukkit.createInventory(null, 27, "Simple-Factions");
         inventory.setMaxStackSize(1);
 
-        inventory.setItem(11, CreateItem("Create", Material.ANVIL, "Create a new faction."));
+        inventory.setItem(11, CreateItem("Create new faction", Material.ANVIL, "Create a new faction."));
         inventory.setItem(15, CreateItem("Join faction", Material.NAME_TAG, "Join a faction."));
 
         player.openInventory(inventory);
@@ -80,12 +81,59 @@ public class Gui
         player.openInventory(inventory);
     }
 
+    public void FactionInfo(Player player, String factionName) throws SQLException
+    {
+        Inventory inventory = Bukkit.createInventory(null, 27, "Info of " + factionName);
+        inventory.setMaxStackSize(1);
+
+        Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName);
+
+        if(faction == null) { player.sendMessage(ChatColor.RED + "Somthing whent rong while getting the factions information."); return; }
+
+        Player owner =  Bukkit.getPlayer(faction.owner());
+        String ownerName;
+        if(owner == null)
+        {
+            ownerName = "";
+        }
+        else
+        {
+            ownerName = owner.getName();
+        }
+        ArrayList<String> members = faction.members();
+        ArrayList<String> top10Members = faction.members();
+
+        for(int i = 0; i < 10; i++)
+        {
+            top10Members.add(members.get(i));
+        }
+
+        inventory.setItem(2, CreateItem("Faction name", Material.NAME_TAG, factionName));
+        inventory.setItem(4, CreateItem("Faction owner", Material.PLAYER_HEAD, ownerName));
+        inventory.setItem(6, CreateItem("Faction members", Material.OAK_SIGN, top10Members));
+        inventory.setItem(21, CreateItem("Join", Material.GREEN_WOOL, "Request to join this faction."));
+        inventory.setItem(23, CreateItem("Leave", Material.RED_WOOL, "Go back to the previous page."));
+
+        player.openInventory(inventory);
+    }
+
+
     private ItemStack CreateItem(String name, Material material, String lore)
     {
         ItemStack itemStack = new ItemStack(material);
         ItemMeta itemMeta = itemStack.getItemMeta();
         itemMeta.setDisplayName(name);
         itemMeta.setLore(Collections.singletonList(lore));
+        itemStack.setItemMeta(itemMeta);
+        return  itemStack;
+    }
+
+    private ItemStack CreateItem(String name, Material material, ArrayList<String> lore)
+    {
+        ItemStack itemStack = new ItemStack(material);
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        itemMeta.setDisplayName(name);
+        itemMeta.setLore(lore);
         itemStack.setItemMeta(itemMeta);
         return  itemStack;
     }
