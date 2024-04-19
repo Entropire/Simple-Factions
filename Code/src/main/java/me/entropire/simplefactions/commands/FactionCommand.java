@@ -83,6 +83,9 @@ public class FactionCommand implements CommandExecutor
             case "now":
                 handleNowCommand(args, player);
                 break;
+            case "anvil":
+                gui.ChangeFactionName(player);
+                break;
             default:
                 player.sendMessage("Available commands for factions are");
                 player.sendMessage("/faction create");

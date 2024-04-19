@@ -8,6 +8,7 @@ me\entropire\simplefactions\database\PlayerDatabase.class
 me\entropire\simplefactions\objects\Invite.class
 me\entropire\simplefactions\objects\Colors.class
 me\entropire\simplefactions\objects\Join.class
+me\entropire\simplefactions\objects\MenuHolder.class
 me\entropire\simplefactions\commands\FactionCommand.class
 me\entropire\simplefactions\Listeners\Message.class
 me\entropire\simplefactions\Simple_Factions.class

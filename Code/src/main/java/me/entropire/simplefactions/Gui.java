@@ -1,14 +1,18 @@
 package me.entropire.simplefactions;
 
+import me.entropire.simplefactions.objects.Colors;
 import me.entropire.simplefactions.objects.Faction;
+import me.entropire.simplefactions.objects.MenuHolder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.awt.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +20,7 @@ import java.util.Collections;
 public class Gui
 {
     private final Simple_Factions simpleFactionsPlugin;
+    private final Colors colors = new Colors();
 
     public Gui(Simple_Factions simpleFactionsPlugin)
     {
@@ -24,7 +29,7 @@ public class Gui
 
     public void SimpleFaction(Player player)
     {
-        Inventory inventory = Bukkit.createInventory(null, 27, "Simple-Factions");
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(), 27, "Simple-Factions");
         inventory.setMaxStackSize(1);
 
         inventory.setItem(11, CreateItem("Create new faction", Material.ANVIL, "Create a new faction."));
@@ -35,8 +40,7 @@ public class Gui
 
     public void FactionList(Player player, int pageNumber) throws SQLException
     {
-        Inventory inventory = Bukkit.createInventory(null, 54, "Factions page " + pageNumber);
-        inventory.setMaxStackSize(1);
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(), 54, "Factions page " + pageNumber);
         ArrayList<String> factions = simpleFactionsPlugin.factionDatabase.getFactions();
 
         if(!factions.isEmpty())
@@ -83,8 +87,7 @@ public class Gui
 
     public void FactionInfo(Player player, String factionName) throws SQLException
     {
-        Inventory inventory = Bukkit.createInventory(null, 27, "Info of " + factionName);
-        inventory.setMaxStackSize(1);
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(), 27, "Info of " + factionName);
 
         Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName);
 
@@ -117,6 +120,59 @@ public class Gui
         player.openInventory(inventory);
     }
 
+    public void CreateFaction(Player player)
+    {
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(), 27, "New faction");
+
+        String factionName;
+        ChatColor factionColor;
+
+        if(simpleFactionsPlugin.createFactions.containsKey(player.getUniqueId()))
+        {
+            Faction faction = simpleFactionsPlugin.createFactions.get(player.getUniqueId());
+            factionName = faction.name();
+            factionColor = faction.color();
+        }
+        else
+        {
+            ArrayList<String> members = new ArrayList<>();
+            members.add(player.getName());
+
+            Faction faction = new Faction(0, "New Faction",  ChatColor.WHITE, player.getUniqueId(), members);
+            simpleFactionsPlugin.createFactions.put(player.getUniqueId(), faction);
+
+            factionName = faction.name();
+            factionColor = faction.color();
+        }
+
+        inventory.setItem(2, CreateItem("Faction name", Material.NAME_TAG, factionName));
+        inventory.setItem(6, CreateItem("Faction color", colors.getMaterialWithChatColor(factionColor), factionColor + colors.getColorNameWithChatColor(factionColor)));
+        inventory.setItem(23, CreateItem("Discard", Material.RED_WOOL, "Discard your faction creation."));
+
+        if(!factionName.contains("New Faction"))
+        {
+            inventory.setItem(21, CreateItem("Create", Material.GREEN_WOOL, "Create your new faction."));
+        }
+
+        player.openInventory(inventory);
+    }
+
+    public void ChangeFactionName(Player player)
+    {
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(), InventoryType.ANVIL, "Change faction name");
+
+        String factionName = "";
+
+        if(simpleFactionsPlugin.createFactions.containsKey(player.getUniqueId()))
+        {
+            Faction faction = simpleFactionsPlugin.createFactions.get(player.getUniqueId());
+            factionName = faction.name();
+        }
+
+        inventory.setItem(0, CreateItem(factionName, Material.NAME_TAG, ""));
+
+        player.openInventory(inventory);
+    }
 
     private ItemStack CreateItem(String name, Material material, String lore)
     {

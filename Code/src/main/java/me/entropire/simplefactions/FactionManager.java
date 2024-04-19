@@ -52,6 +52,18 @@ public class FactionManager
         player.sendMessage(GREEN + "New faction " + factionName + " created.");
     }
 
+    public void create(Player player) throws SQLException
+    {
+        Faction faction = simpleFactionsPlugin.createFactions.get(player.getUniqueId());
+
+        simpleFactionsPlugin.factionDatabase.addFaction(faction);
+        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(faction.name()).id());
+
+        changePlayerDisplayName(player, faction.color() + "[" + faction.name() + "] " + player.getName());
+
+        player.sendMessage(GREEN + "New faction " + faction.name() + " created.");
+    }
+
     public void create(UUID player, String factionName) throws SQLException
     {
         ArrayList<String> members = new ArrayList<>();
@@ -475,6 +487,14 @@ public class FactionManager
         String newOwnerUUID = simpleFactionsPlugin.playerDatabase.getPlayerUUID(newOwnerName).toString();
         simpleFactionsPlugin.factionDatabase.updateFactionOwner(factionId, newOwnerUUID);
         player.sendMessage(GREEN + "Change the owner of " + faction.name() + " to " + newOwnerName);
+    }
+
+    public void DeleteFactionCreation(Player player)
+    {
+        if(simpleFactionsPlugin.createFactions.containsKey(player.getUniqueId()))
+        {
+            simpleFactionsPlugin.createFactions.remove(player.getUniqueId());
+        }
     }
 
     private void changePlayerDisplayName(Player player, String newDisplayName)

@@ -1,14 +1,15 @@
 package me.entropire.simplefactions.Listeners;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import me.entropire.simplefactions.FactionManager;
 import me.entropire.simplefactions.Gui;
 import me.entropire.simplefactions.Simple_Factions;
+import me.entropire.simplefactions.objects.MenuHolder;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.sql.SQLException;
@@ -25,12 +26,27 @@ public class OnInventoryClick  implements Listener
     }
 
     @EventHandler
-    public void onInventoryClick(InventoryClickEvent e)
-    {
-        if(e.getInventory().getMaxStackSize() != 1) return;
+    public void onInventoryClick(InventoryClickEvent e) {
+        if (!(e.getInventory().getHolder() instanceof MenuHolder)) return;
         if(e.getCurrentItem() == null) return;
 
-        e.setCancelled(true);
+        e.getWhoClicked().sendMessage(e.getCurrentItem().getItemMeta().displayName());
+    }
+
+    
+
+    /*
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e)
+    {
+
+        e.getWhoClicked().sendMessage(e.getCurrentItem().toString());
+
+
+                if(!(e.getInventory().getHolder() instanceof MenuHolder)) return;
+        e.getWhoClicked().sendMessage(e.getCurrentItem().toString());
+
+        if(e.getCurrentItem() == null) return;
 
         String inventoryName = e.getView().getTitle();
         ItemStack clickedItem = e.getCurrentItem();
@@ -39,7 +55,13 @@ public class OnInventoryClick  implements Listener
         switch (inventoryName)
         {
             case "Simple-Factions":
-                    HandleSimpleFactionGui(clickedItem, player);
+                HandleSimpleFactionGui(clickedItem, player);
+                break;
+            case "New faction":
+                HandleFactionCreateGui(clickedItem, player);
+                break;
+            case "Change faction name":
+                HandleChangeFactionNameGui(clickedItem, player);
                 break;
         }
 
@@ -56,18 +78,12 @@ public class OnInventoryClick  implements Listener
 
     private void HandleSimpleFactionGui(ItemStack clickedItem, Player player)
     {
-        if(clickedItem.getItemMeta().getDisplayName().equals("Join faction") && clickedItem.getType().equals(Material.NAME_TAG))
+        if(clickedItem.getItemMeta().getDisplayName().equals("Create new faction") && clickedItem.getType().equals(Material.ANVIL))
         {
-            try
-            {
-                gui.FactionList(player, 0);
-            } catch (SQLException e)
-            {
-                throw new RuntimeException(e);
-            }
+            gui.CreateFaction(player);
         }
 
-        if(clickedItem.getItemMeta().getDisplayName().equals("Create new faction") && clickedItem.getType().equals(Material.ANVIL))
+        if(clickedItem.getItemMeta().getDisplayName().equals("Join faction") && clickedItem.getType().equals(Material.NAME_TAG))
         {
             try
             {
@@ -154,4 +170,49 @@ public class OnInventoryClick  implements Listener
             }
         }
     }
+
+    private void HandleFactionCreateGui(ItemStack clickedItem, Player player)
+    {
+        if(clickedItem.getItemMeta().getDisplayName().equals("Create") && clickedItem.getType().equals(Material.GREEN_WOOL))
+        {
+            try
+            {
+                factionManager.create(player);
+            } catch (SQLException e)
+            {
+                throw new RuntimeException(e);
+            }
+        }
+
+        if(clickedItem.getItemMeta().getDisplayName().equals("Discard") && clickedItem.getType().equals(Material.RED_WOOL))
+        {
+            factionManager.DeleteFactionCreation(player);
+            player.closeInventory();
+        }
+
+        if(clickedItem.getItemMeta().getDisplayName().equals("Faction name") && clickedItem.getType().equals(Material.NAME_TAG))
+        {
+            gui.ChangeFactionName(player);
+        }
+
+        if(clickedItem.getItemMeta().getDisplayName().equals("Faction color"))
+        {
+
+        }
+    }
+
+    private void HandleChangeFactionNameGui(ItemStack clickedItem, Player player)
+    {
+        player.sendMessage("test: ");
+
+        if(clickedItem.getType().equals(Material.NAME_TAG))
+        {
+            player.sendMessage(clickedItem.getItemMeta().displayName());
+        }
+
+
+    }
+
+     */
+
 }

@@ -25,6 +25,7 @@ public final class Simple_Factions extends JavaPlugin
 
     public FactionDatabase factionDatabase;
     public PlayerDatabase playerDatabase;
+    public Map<UUID, Faction> createFactions = new HashMap<>();
     public final Map<UUID, Invite> invites = new HashMap<>();
     public final Map<UUID, Join> joins = new HashMap<>();
     @Override
