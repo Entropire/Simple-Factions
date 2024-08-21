@@ -1,0 +1,12 @@
+name: Simple_Factions
+version: '${project.version}'
+main: me.entropire.simple_factions.Simple_Factions
+api-version: '1.20'
+authors: [Entropire]
+description: A simple faction plugin.
+
+commands:
+  faction:
+
+  chat:
+    description: Change the chat you type in
