@@ -1,7 +1,7 @@
 package me.entropire.simple_factions.commands;
 
 import me.entropire.simple_factions.FactionManager;
-import me.entropire.simple_factions.Gui;
+import me.entropire.simple_factions.GuiManager;
 import me.entropire.simple_factions.Simple_Factions;
 import me.entropire.simple_factions.objects.Faction;
 import org.bukkit.Bukkit;
@@ -21,12 +21,12 @@ public class FactionCommand implements CommandExecutor, TabCompleter
 {
     Simple_Factions simpleFactionsPlugin;
     FactionManager factionManager;
-    Gui gui;
+    GuiManager gui;
 
     public FactionCommand(Simple_Factions simpleFactionsPlugin)
     {
         factionManager = new FactionManager(simpleFactionsPlugin);
-        gui = new Gui(simpleFactionsPlugin);
+        gui = new GuiManager(simpleFactionsPlugin);
         this.simpleFactionsPlugin = simpleFactionsPlugin;
     }
 

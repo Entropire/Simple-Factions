@@ -34,7 +34,7 @@ public final class Simple_Factions extends JavaPlugin
         getServer().getConsoleSender().sendMessage(ChatColor.GREEN + "Simple-Factions loading.");
         this.getServer().getPluginManager().registerEvents(new OnJoin(this), this);
         this.getServer().getPluginManager().registerEvents(new Message(this), this);
-        this.getServer().getPluginManager().registerEvents(new OnInventoryClick(this), this);
+        this.getServer().getPluginManager().registerEvents(new OnInventoryClick(), this);
         getCommand("faction").setExecutor(new FactionCommand(this));
         getCommand("chat").setExecutor(new chatCommands(this));
         getCommand("faction").setTabCompleter(new FactionCommand(this));
