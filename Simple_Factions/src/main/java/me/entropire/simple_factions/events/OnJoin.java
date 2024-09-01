@@ -35,9 +35,9 @@ public class OnJoin implements Listener
             {
                 Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-                player.setDisplayName(faction.color() + "[" + faction.name() + "] " + player.getName());
-                player.setPlayerListName(faction.color() + "[" + faction.name() + "] " + player.getName());
-                e.setJoinMessage(faction.color() + "[" + faction.name() + "] " + player.getName() + ChatColor.YELLOW + " joined the game.");
+                player.setDisplayName(faction.getColor() + "[" + faction.getName() + "] " + player.getName());
+                player.setPlayerListName(faction.getColor() + "[" + faction.getName() + "] " + player.getName());
+                e.setJoinMessage(faction.getColor() + "[" + faction.getName() + "] " + player.getName() + ChatColor.YELLOW + " joined the game.");
             }
         }
         catch (SQLException ex)

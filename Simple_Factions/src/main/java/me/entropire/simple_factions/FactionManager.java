@@ -15,7 +15,6 @@ import java.util.UUID;
 import static org.bukkit.ChatColor.*;
 
 
-@SuppressWarnings("deprecation")
 public class FactionManager
 {
     private final Colors colors = new Colors();
@@ -45,9 +44,9 @@ public class FactionManager
         Faction faction = new Faction(0, factionName, WHITE, player.getUniqueId(), members);
 
         simpleFactionsPlugin.factionDatabase.addFaction(faction);
-        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).id());
+        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).getId());
 
-        changePlayerDisplayName(player, faction.color() + "[" + faction.name() + "] " + player.getName());
+        changePlayerDisplayName(player, faction.getColor() + "[" + faction.getName() + "] " + player.getName());
 
         player.sendMessage(GREEN + "New faction " + factionName + " created.");
     }
@@ -57,21 +56,23 @@ public class FactionManager
         Faction faction = simpleFactionsPlugin.createFactions.get(player.getUniqueId());
 
         simpleFactionsPlugin.factionDatabase.addFaction(faction);
-        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(faction.name()).id());
+        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(faction.getName()).getId());
 
-        changePlayerDisplayName(player, faction.color() + "[" + faction.name() + "] " + player.getName());
+        simpleFactionsPlugin.createFactions.remove(player.getUniqueId());
 
-        player.sendMessage(GREEN + "New faction " + faction.name() + " created.");
+        changePlayerDisplayName(player, faction.getColor() + "[" + faction.getName() + "] " + player.getName());
+
+        player.sendMessage(GREEN + "New faction " + faction.getName() + " created.");
     }
 
-    public void create(UUID player, String factionName) throws SQLException
+    public void create(UUID player, String factionName) throws SQLException //may be removed in the released version
     {
         ArrayList<String> members = new ArrayList<>();
         members.add(player.toString());
         Faction faction = new Faction(0, factionName, WHITE, player, members);
 
         simpleFactionsPlugin.factionDatabase.addFaction(faction);
-        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.toString(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).id());
+        simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.toString(), simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).getId());
     }
 
     public void delete(Player player) throws SQLException
@@ -91,13 +92,13 @@ public class FactionManager
             return;
         }
 
-        if(!faction.owner().equals(player.getUniqueId()))
+        if(!faction.getOwner().equals(player.getUniqueId()))
         {
             player.sendMessage(RED + "Only the owner of a faction can delete it.");
             return;
         }
 
-        ArrayList<String> members = faction.members();
+        ArrayList<String> members = faction.getMembers();
         for (String memberName : members) {
             UUID memberUUID = simpleFactionsPlugin.playerDatabase.getPlayerUUID(memberName);
             Player member = Bukkit.getPlayer(memberUUID);
@@ -111,7 +112,7 @@ public class FactionManager
         }
         simpleFactionsPlugin.factionDatabase.deleteFaction(factionId);
 
-        player.sendMessage(RED + "You have delete your faction " + faction.name());
+        player.sendMessage(RED + "You have delete your faction " + faction.getName());
     }
 
     public void list(Player player) throws SQLException
@@ -132,7 +133,7 @@ public class FactionManager
             if(simpleFactionsPlugin.playerDatabase.hasFaction(player))
             {
                 int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
-                members = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId).members();
+                members = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId).getMembers();
             }
             else
             {
@@ -142,7 +143,7 @@ public class FactionManager
         }
         else if  (simpleFactionsPlugin.factionDatabase.factionExistsByName(factionName))
         {
-            members = simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).members();
+            members = simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName).getMembers();
         }
         else
         {
@@ -183,9 +184,9 @@ public class FactionManager
             return;
         }
 
-        String ownerUUID = faction.owner().toString();
+        String ownerUUID = faction.getOwner().toString();
         String ownerName = simpleFactionsPlugin.playerDatabase.getPlayerName(ownerUUID);
-        player.sendMessage("Owner of " + faction.name() + ": " + ownerName);
+        player.sendMessage("Owner of " + faction.getName() + ": " + ownerName);
     }
 
 
@@ -199,7 +200,7 @@ public class FactionManager
 
         int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
         Faction factionData = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
-        if(factionData.owner().equals(player.getUniqueId()))
+        if(factionData.getOwner().equals(player.getUniqueId()))
         {
             player.sendMessage(RED + "As owner you van not leave the faction.");
             return;
@@ -209,7 +210,7 @@ public class FactionManager
         simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), 0);
 
         changePlayerDisplayName(player, player.getName());
-        player.sendMessage(GREEN + "You left the faction: " + factionData.name());
+        player.sendMessage(GREEN + "You left the faction: " + factionData.getName());
     }
 
     public void kick(Player player, String playerName) throws SQLException
@@ -223,18 +224,18 @@ public class FactionManager
         int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
         Faction factionData = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        if(!factionData.owner().equals(player.getUniqueId()))
+        if(!factionData.getOwner().equals(player.getUniqueId()))
         {
             player.sendMessage(RED + "Only the owner of the faction can kick some wane.");
             return;
         }
-        if(!factionData.members().contains(playerName))
+        if(!factionData.getMembers().contains(playerName))
         {
             player.sendMessage(RED + "This player is not in your faction.");
             return;
         }
         UUID playerToKickId = simpleFactionsPlugin.playerDatabase.getPlayerUUID(playerName);
-        if(factionData.owner().equals(playerToKickId))
+        if(factionData.getOwner().equals(playerToKickId))
         {
             player.sendMessage(RED + "The owner can not be kicked from the faction.");
             return;
@@ -261,7 +262,7 @@ public class FactionManager
         int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
         Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        if(!faction.owner().equals(player.getUniqueId()))
+        if(!faction.getOwner().equals(player.getUniqueId()))
         {
             player.sendMessage(RED  + "Only the owner can invite player to the faction." );
             return;
@@ -285,7 +286,7 @@ public class FactionManager
         Invite invite = new Invite(invitedPlayer.getUniqueId(), factionId, System.currentTimeMillis() + 30000);
         simpleFactionsPlugin.invites.put(invitedPlayer.getUniqueId(), invite);
 
-        invitedPlayer.sendMessage(GREEN + "You have been invited for the faction " + faction.name());
+        invitedPlayer.sendMessage(GREEN + "You have been invited for the faction " + faction.getName());
         invitedPlayer.sendMessage("to accept type: /faction accept");
         invitedPlayer.sendMessage("to decline type: /faction decline");
 
@@ -304,15 +305,15 @@ public class FactionManager
             return;
         }
         Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataByName(factionName);
-        Player receiver = Bukkit.getPlayer(faction.owner());
+        Player receiver = Bukkit.getPlayer(faction.getOwner());
         if (receiver == null){
             player.sendMessage(RED + "Something went wrong while making a join request.");
             return;
         }
-        Join join = new Join(faction.owner(), player.getUniqueId(), faction.id(), System.currentTimeMillis() + 30000);
-        simpleFactionsPlugin.joins.put(faction.owner(), join);
+        Join join = new Join(faction.getOwner(), player.getUniqueId(), faction.getId(), System.currentTimeMillis() + 30000);
+        simpleFactionsPlugin.joins.put(faction.getOwner(), join);
 
-        player.sendMessage(GREEN + "You have send a join request to " + faction.name());
+        player.sendMessage(GREEN + "You have send a join request to " + faction.getName());
 
         receiver.sendMessage(GREEN + player.getName() + " wants to join your faction.");
         receiver.sendMessage("to accept type: /faction accept");
@@ -329,8 +330,8 @@ public class FactionManager
             simpleFactionsPlugin.factionDatabase.updateFactionMembers(invite.factionId(), player.getName(), true);
             simpleFactionsPlugin.playerDatabase.updateFactionWithPlayerName(player.getName(), invite.factionId());
 
-            changePlayerDisplayName(player, faction.color() + "[" + faction.name() + "] " + player.getName());
-            player.sendMessage(GREEN + "you have joined the faction " + faction.name());
+            changePlayerDisplayName(player, faction.getColor() + "[" + faction.getName() + "] " + player.getName());
+            player.sendMessage(GREEN + "you have joined the faction " + faction.getName());
 
             simpleFactionsPlugin.invites.remove(player.getUniqueId());
             return;
@@ -347,8 +348,8 @@ public class FactionManager
 
             if(sender != null)
             {
-                changePlayerDisplayName(sender, faction.color() + "[" + faction.name() + "] " + player.getName());
-                sender.sendMessage(GREEN + "You have joined the faction " + faction.name());
+                changePlayerDisplayName(sender, faction.getColor() + "[" + faction.getName() + "] " + player.getName());
+                sender.sendMessage(GREEN + "You have joined the faction " + faction.getName());
             }
             player.sendMessage(GREEN + senderName + " is now part of your faction.");
 
@@ -364,7 +365,7 @@ public class FactionManager
             Invite invite = simpleFactionsPlugin.invites.get(player.getUniqueId());
             Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(invite.factionId());
 
-            player.sendMessage(GREEN + "you have declined the faction invitation from " + faction.name());
+            player.sendMessage(GREEN + "you have declined the faction invitation from " + faction.getName());
 
             simpleFactionsPlugin.invites.remove(player.getUniqueId());
             return;
@@ -398,7 +399,7 @@ public class FactionManager
         int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
         Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        if(!faction.owner().equals(player.getUniqueId())){
+        if(!faction.getOwner().equals(player.getUniqueId())){
             player.sendMessage(RED + "Only the owner can modify a faction.");
             return;
         }
@@ -408,16 +409,16 @@ public class FactionManager
         }
 
         simpleFactionsPlugin.factionDatabase.updateFactionName(factionId, newFactionName);
-        player.sendMessage(GREEN + "Changed faction name from " + faction.name() + " to " + newFactionName);
+        player.sendMessage(GREEN + "Changed faction name from " + faction.getName() + " to " + newFactionName);
         faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        for(int i = 0; i < faction.members().size(); i++)
+        for(int i = 0; i < faction.getMembers().size(); i++)
         {
-            Player member = player.getServer().getPlayer(faction.members().get(i));
+            Player member = player.getServer().getPlayer(faction.getMembers().get(i));
 
             if(member != null)
             {
-            changePlayerDisplayName(member, faction.color() + "[" + faction.name() + "] " + player.getName());
+            changePlayerDisplayName(member, faction.getColor() + "[" + faction.getName() + "] " + player.getName());
             }
         }
     }
@@ -441,24 +442,24 @@ public class FactionManager
         int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
         Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        if(!faction.owner().equals(player.getUniqueId()))
+        if(!faction.getOwner().equals(player.getUniqueId()))
         {
             player.sendMessage(RED + "Only the owner can modify a faction.");
             return;
         }
 
         simpleFactionsPlugin.factionDatabase.updateFactionColor(factionId, newColor);
-        player.sendMessage(GREEN + "Changed faction color from " + faction.color() + colors.getColorNameWithChatColor(faction.color())
+        player.sendMessage(GREEN + "Changed faction color from " + faction.getColor() + colors.getColorNameWithChatColor(faction.getColor())
                 + GREEN + " to " + colors.getChatColorWithColorName(newColor) + newColor);
         faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        for(int i = 0; i < faction.members().size(); i++)
+        for(int i = 0; i < faction.getMembers().size(); i++)
         {
-            Player member = player.getServer().getPlayer(faction.members().get(i));
+            Player member = player.getServer().getPlayer(faction.getMembers().get(i));
 
             if(member != null)
             {
-                changePlayerDisplayName(member, faction.color() + "[" + faction.name() + "] " + player.getName());
+                changePlayerDisplayName(member, faction.getColor() + "[" + faction.getName() + "] " + player.getName());
             }
         }
     }
@@ -474,19 +475,19 @@ public class FactionManager
         int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
         Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
 
-        if(!faction.owner().equals(player.getUniqueId()))
+        if(!faction.getOwner().equals(player.getUniqueId()))
         {
             player.sendMessage(RED + "Only the owner can modify a faction.");
             return;
         }
-        if(!faction.members().contains(newOwnerName)){
+        if(!faction.getMembers().contains(newOwnerName)){
             player.sendMessage(RED + "Player must be in your faction to make him the owner.");
             return;
         }
 
         String newOwnerUUID = simpleFactionsPlugin.playerDatabase.getPlayerUUID(newOwnerName).toString();
         simpleFactionsPlugin.factionDatabase.updateFactionOwner(factionId, newOwnerUUID);
-        player.sendMessage(GREEN + "Change the owner of " + faction.name() + " to " + newOwnerName);
+        player.sendMessage(GREEN + "Change the owner of " + faction.getName() + " to " + newOwnerName);
     }
 
     public void DeleteFactionCreation(Player player)

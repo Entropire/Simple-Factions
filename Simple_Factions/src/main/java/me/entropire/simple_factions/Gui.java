@@ -4,16 +4,10 @@ import me.entropire.simple_factions.objects.Colors;
 import me.entropire.simple_factions.objects.Faction;
 import me.entropire.simple_factions.objects.MenuHolder;
 import me.entropire.simple_factions.objects.MenuTypes;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R2.event.CraftEventFactory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -21,15 +15,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class Gui
 {
     private final Simple_Factions simpleFactionsPlugin;
     private final Colors colors = new Colors();
+    private final FactionManager factionManager;
 
     public Gui(Simple_Factions simpleFactionsPlugin)
     {
+        this.factionManager = new FactionManager(simpleFactionsPlugin);
         this.simpleFactionsPlugin = simpleFactionsPlugin;
     }
 
@@ -99,7 +97,7 @@ public class Gui
 
         if(faction == null) { player.sendMessage(ChatColor.RED + "Somthing whent rong while getting the factions information."); return; }
 
-        Player owner =  Bukkit.getPlayer(faction.owner());
+        Player owner =  Bukkit.getPlayer(faction.getOwner());
         String ownerName;
         if(owner == null)
         {
@@ -109,8 +107,8 @@ public class Gui
         {
             ownerName = owner.getName();
         }
-        ArrayList<String> members = faction.members();
-        ArrayList<String> top10Members = faction.members();
+        ArrayList<String> members = faction.getMembers();
+        ArrayList<String> top10Members = faction.getMembers();
 
         for(int i = 0; i < 10; i++)
         {
@@ -136,8 +134,8 @@ public class Gui
         if(simpleFactionsPlugin.createFactions.containsKey(player.getUniqueId()))
         {
             Faction faction = simpleFactionsPlugin.createFactions.get(player.getUniqueId());
-            factionName = faction.name();
-            factionColor = faction.color();
+            factionName = faction.getName();
+            factionColor = faction.getColor();
         }
         else
         {
@@ -147,8 +145,8 @@ public class Gui
             Faction faction = new Faction(0, "New Faction",  ChatColor.WHITE, player.getUniqueId(), members);
             simpleFactionsPlugin.createFactions.put(player.getUniqueId(), faction);
 
-            factionName = faction.name();
-            factionColor = faction.color();
+            factionName = faction.getName();
+            factionColor = faction.getColor();
         }
 
         inventory.setItem(2, CreateItem("Faction name", Material.NAME_TAG, factionName));
@@ -163,20 +161,121 @@ public class Gui
         player.openInventory(inventory);
     }
 
+    public void SetFactionName(Player player)
+    {
+        new AnvilGUI.Builder()
+                .onClick((slot, stateSnapshot) -> {
+                    if(slot != AnvilGUI.Slot.OUTPUT) {
+                        return Collections.emptyList();
+                    }
+
+                    if(!stateSnapshot.getText().equalsIgnoreCase("name"))
+                    {
+                        simpleFactionsPlugin.createFactions.get(player.getUniqueId()).setName(stateSnapshot.getText());
+                        CreateFaction(player);
+                        return Arrays.asList(AnvilGUI.ResponseAction.close());
+                    }
+                    else
+                    {
+                        return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("name"));
+                    }
+                })
+                .text("name")
+                .title("Set faction name")
+                .plugin(simpleFactionsPlugin)
+                .open(player);
+    }
+
+    public void SetFactionColor(Player player)
+    {
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(MenuTypes.SetFactionColor), 27, "Set faction color");
+
+        int i = 0;
+        List<Integer> slots = Arrays.asList(1,2,3,4,5,6,7,10,11,12,13,14,15,16,21,23);
+        for (String colorName : colors.colorName)
+        {
+            inventory.setItem(slots.get(i), CreateItem(colors.getChatColorWithColorName(colorName) + colorName, colors.getMaterialWithColorName(colorName), ""));
+            i++;
+        }
+
+        player.openInventory(inventory);
+    }
+
+    public void Faction(Player player, Faction faction) throws SQLException {
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(MenuTypes.Faction), 27, faction.getName());
+
+        inventory.setItem(10, CreateItem("Faction name", Material.NAME_TAG, faction.getName()));
+        inventory.setItem(12, CreateItem("Faction color", colors.getMaterialWithChatColor(faction.getColor()), faction.getColor() + colors.getColorNameWithChatColor(faction.getColor())));
+        inventory.setItem(14, CreateItem("Owner", Material.PLAYER_HEAD, simpleFactionsPlugin.playerDatabase.getPlayerName(faction.getOwner().toString())));
+        ArrayList<String> members = new ArrayList<>();
+        for (int i = 0; i < Math.min(9, faction.getMembers().size()); i++) {
+            members.add(faction.getMembers().get(i));
+        }
+        inventory.setItem(16, CreateItem("Members", Material.OAK_SIGN, members));
+
+        if(faction.getOwner().equals(player.getUniqueId()))
+        {
+            inventory.setItem(18, CreateItem("Invite Player", Material.PAPER,  ""));
+            inventory.setItem(26, CreateItem("Delete Faction", Material.RED_WOOL,  ""));
+        }
+        else
+        {
+            inventory.setItem(26, CreateItem("Leave Faction", Material.RED_WOOL,  ""));
+        }
+
+        player.openInventory(inventory);
+    }
+
     public void ChangeFactionName(Player player)
     {
-        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        new AnvilGUI.Builder()
+                .onClick((slot, stateSnapshot) -> {
+                    if(slot != AnvilGUI.Slot.OUTPUT) {
+                        return Collections.emptyList();
+                    }
+                    Faction faction;
+                    try {
+                        int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
+                        faction  = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
 
-        BlockPos position = serverPlayer.blockPosition();
-
-        AnvilMenu anvilMenu = new AnvilMenu(0, serverPlayer.getInventory(), ContainerLevelAccess.create(serverPlayer.level(), position));
-
-        anvilMenu.setTitle(Component.translatable("Hello World"));
-
-        CraftEventFactory.callInventoryOpenEvent(serverPlayer, anvilMenu);
-
-        player.sendMessage("Opened anvil menu");
+                    if(!stateSnapshot.getText().equalsIgnoreCase(faction.getName()))
+                    {
+                        try {
+                            factionManager.modifyName(player, faction.getName());
+                        } catch (SQLException e) {
+                            throw new RuntimeException(e);
+                        }
+                        return Arrays.asList(AnvilGUI.ResponseAction.close());
+                    }
+                    else
+                    {
+                        return Arrays.asList(AnvilGUI.ResponseAction.replaceInputText("name"));
+                    }
+                })
+                .text("name")
+                .title("Change faction name")
+                .plugin(simpleFactionsPlugin)
+                .open(player);
     }
+
+    public void ChangeFactionColor(Player player)
+    {
+        Inventory inventory = Bukkit.createInventory(new MenuHolder(MenuTypes.ChangeFactionColor), 27, "Change faction color");
+
+        int i = 0;
+        List<Integer> slots = Arrays.asList(1,2,3,4,5,6,7,10,11,12,13,14,15,16,21,23);
+        for (String colorName : colors.colorName)
+        {
+            inventory.setItem(slots.get(i), CreateItem(colors.getChatColorWithColorName(colorName) + colorName, colors.getMaterialWithColorName(colorName), ""));
+            i++;
+        }
+
+        player.openInventory(inventory);
+    }
+
 
     private ItemStack CreateItem(String name, Material material, String lore)
     {

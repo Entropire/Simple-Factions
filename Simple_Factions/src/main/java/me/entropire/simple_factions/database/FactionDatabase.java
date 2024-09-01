@@ -44,10 +44,10 @@ public class FactionDatabase
     {
         try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO Factions (name, color, owner, members) VALUES (?, ?, ?, ?)"))
         {
-            preparedStatement.setString(1, faction.name());
-            preparedStatement.setString(2, colors.getColorNameWithChatColor(faction.color()));
-            preparedStatement.setString(3, faction.owner().toString());
-            preparedStatement.setString(4, String.join(",", faction.members()));
+            preparedStatement.setString(1, faction.getName());
+            preparedStatement.setString(2, colors.getColorNameWithChatColor(faction.getColor()));
+            preparedStatement.setString(3, faction.getOwner().toString());
+            preparedStatement.setString(4, String.join(",", faction.getMembers()));
             preparedStatement.execute();
         }
     }

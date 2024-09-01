@@ -3,7 +3,6 @@ me\entropire\simple_factions\database\PlayerDatabase.class
 me\entropire\simple_factions\events\Message.class
 me\entropire\simple_factions\Gui.class
 me\entropire\simple_factions\events\OnInventoryClick.class
-me\entropire\simple_factions\objects\Anvil.class
 me\entropire\simple_factions\objects\Join.class
 me\entropire\simple_factions\Simple_Factions.class
 me\entropire\simple_factions\objects\Colors.class

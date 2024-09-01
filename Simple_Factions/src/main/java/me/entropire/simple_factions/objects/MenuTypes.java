@@ -6,5 +6,7 @@ public enum MenuTypes
     FactionList,
     FactionInfo,
     CreateFaction,
-    ChangeFactionName
+    SetFactionColor,
+    Faction,
+    ChangeFactionColor
 }

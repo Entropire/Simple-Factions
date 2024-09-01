@@ -35,11 +35,9 @@ public class Message implements Listener
                 Faction faction = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
                 switch (simpleFactionsPlugin.playerDatabase.getChat(player.getUniqueId()).toLowerCase()){
                     case "public":
-                        player.sendMessage("public");
-                        e.setFormat(faction.color() + "[" + faction.name() + "] " + player.getName() + ": " + ChatColor.GRAY + message);
+                        e.setFormat(faction.getColor() + "[" + faction.getName() + "] " + player.getName() + ": " + ChatColor.GRAY + message);
                         break;
                     case "faction":
-                        player.sendMessage("faction");
                         e.setCancelled(true);
                         handleFactionChat(faction, player, message);
                         break;
@@ -47,7 +45,6 @@ public class Message implements Listener
                         player.sendMessage("error: " + simpleFactionsPlugin.playerDatabase.getChat(player.getUniqueId()));
                 }
             }else{
-                player.sendMessage("no faction");
                 e.setFormat(ChatColor.WHITE + player.getName() + ": " + ChatColor.GRAY + e.getMessage());
             }
         }
@@ -60,11 +57,11 @@ public class Message implements Listener
 
     private void handleFactionChat(Faction faction, Player player, String message)
     {
-        ArrayList<String> members = faction.members();
+        ArrayList<String> members = faction.getMembers();
         for(String s : members) {
             Player member = Bukkit.getPlayer(s);
             if (member != null) {
-                member.sendMessage(ChatColor.GREEN + "FACTION: " + faction.color() + "[" + faction.name() + "] " + player.getName() + ": " + ChatColor.GRAY + message);
+                member.sendMessage(ChatColor.GREEN + "FACTION: " + faction.getColor() + "[" + faction.getName() + "] " + player.getName() + ": " + ChatColor.GRAY + message);
             }
         }
     }

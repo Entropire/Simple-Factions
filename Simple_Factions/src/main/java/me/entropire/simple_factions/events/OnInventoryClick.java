@@ -3,8 +3,11 @@ package me.entropire.simple_factions.events;
 import me.entropire.simple_factions.FactionManager;
 import me.entropire.simple_factions.Gui;
 import me.entropire.simple_factions.Simple_Factions;
+import me.entropire.simple_factions.objects.Colors;
+import me.entropire.simple_factions.objects.Faction;
 import me.entropire.simple_factions.objects.MenuHolder;
 import me.entropire.simple_factions.objects.MenuTypes;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,22 +21,20 @@ public class OnInventoryClick  implements Listener
 {
     FactionManager factionManager;
     Gui gui;
+    Simple_Factions simpleFactionsPlugin;
+    Colors colors = new Colors();
 
     public OnInventoryClick(Simple_Factions simpleFactionsPlugin)
     {
         factionManager = new FactionManager(simpleFactionsPlugin);
         gui = new Gui(simpleFactionsPlugin);
+        this.simpleFactionsPlugin = simpleFactionsPlugin;
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e)
     {
-
-        e.getWhoClicked().sendMessage(e.getCurrentItem().toString());
-
-
         if(!(e.getInventory().getHolder() instanceof MenuHolder)) return;
-        e.getWhoClicked().sendMessage(e.getCurrentItem().toString());
 
         if(e.getCurrentItem() == null) return;
 
@@ -57,9 +58,12 @@ public class OnInventoryClick  implements Listener
             case CreateFaction:
                 HandleFactionCreateGui(clickedItem, player);
                 break;
-            case ChangeFactionName:
-                HandleChangeFactionNameGui(clickedItem, player);
-                break;
+            case SetFactionColor:
+                HandleFactionColorGui(clickedItem, player);
+            case  Faction:
+                HandleFactionGui(clickedItem, player);
+            case ChangeFactionColor:
+                HandleChangeFactionColorGui(clickedItem, player);
         }
     }
 
@@ -169,6 +173,8 @@ public class OnInventoryClick  implements Listener
             {
                 throw new RuntimeException(e);
             }
+
+            player.closeInventory();
         }
 
         if(clickedItem.getItemMeta().getDisplayName().equals("Discard") && clickedItem.getType().equals(Material.RED_WOOL))
@@ -179,17 +185,84 @@ public class OnInventoryClick  implements Listener
 
         if(clickedItem.getItemMeta().getDisplayName().equals("Faction name") && clickedItem.getType().equals(Material.NAME_TAG))
         {
-            gui.ChangeFactionName(player);
+            gui.SetFactionName(player);
         }
 
         if(clickedItem.getItemMeta().getDisplayName().equals("Faction color"))
         {
-
+            gui.SetFactionColor(player);
         }
     }
 
-    private void HandleChangeFactionNameGui(ItemStack clickedItem, Player player)
+    private void HandleFactionColorGui(ItemStack clickedItem, Player player)
     {
-        player.sendMessage(clickedItem.getItemMeta().getDisplayName());
+        if(simpleFactionsPlugin.createFactions.containsKey(player.getUniqueId()))
+        {
+            if(clickedItem.hasItemMeta())
+            {
+                String colorName = clickedItem.getItemMeta().getDisplayName();
+                ChatColor color = colors.getChatColorWithColorName(ChatColor.stripColor(colorName));
+                simpleFactionsPlugin.createFactions.get(player.getUniqueId()).setColor(color);
+                gui.CreateFaction(player);
+            }
+        }
+    }
+
+    private void HandleFactionGui(ItemStack clickedItem, Player player)
+    {
+        if(!clickedItem.hasItemMeta()) return;
+
+        switch (clickedItem.getItemMeta().getDisplayName())
+        {
+            case "Faction name":
+                gui.ChangeFactionName(player);
+                break;
+            case "Faction color":
+                gui.ChangeFactionColor(player);
+                break;
+            case "Owner":
+
+                break;
+            case "Members":
+
+                break;
+            case "Invite Player":
+
+                break;
+            case "Delete Faction":
+                try {
+                    factionManager.delete(player);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+            case "Leave Faction":
+                try {
+                    factionManager.leave(player);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                break;
+        }
+    }
+
+    private void HandleChangeFactionColorGui(ItemStack clickedItem, Player player)
+    {
+        if(simpleFactionsPlugin.createFactions.containsKey(player.getUniqueId()))
+        {
+            if(clickedItem.hasItemMeta())
+            {
+                String colorName = clickedItem.getItemMeta().getDisplayName();
+                Faction faction;
+                try {
+                    factionManager.modifyColor(player, colorName);
+                    int factionId = simpleFactionsPlugin.playerDatabase.getFactionId(player);
+                    faction  = simpleFactionsPlugin.factionDatabase.getFactionDataById(factionId);
+                    gui.Faction(player, faction);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 }
